@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Sistema de analise de sentimentos</title>
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <script src="/static/bootstrap.min.js"></script>
+    <script src="/static/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+    <div class="row">
+        <div class="container">
+            <div class="page-header">
+                <h1>Sistema de Analise de Sentimentos</h1>
+            </div>
+        </div>
+
+    </div>
+    <hr>
+    <div class="row">
+        <div class="container">
+            <div class="col-lg-12">
+                <div class="input-group">
+                    <input type="text" id="frase_input" class="form-control" placeholder="Frase...">
+                    <span class="input-group-btn">
+                        <button id="but_ajax" class="btn btn-default" type="button">Analisar!</button>
+                    </span>
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-12 -->
+            <br>
+            <div id="retorno_span" style="display: none" class="alert alert-info" role="alert">...</div>
+        </div>
+    </div><!-- /.row -->
+    <hr>
+    <div class="row feedback" style="display: none">
+        <div class="container">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Feedback da analise</h3>
+                </div>
+                <div class="panel-body">
+                    O resultado da analise esta correto?
+                    <br>
+                    <div class="btn-group" role="group" aria-label="...">
+                        <button type="button" class="btn btn-default btn-feedback" value="1">Sim</button>
+                        <button type="button" class="btn btn-default btn-feedback" value="0">Não</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row feedback-resposta" style="display: none">
+        <div class="container">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    Muito obrigado pelo seu feedback!
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+
+
+            $("#but_ajax").click(function () {
+                $(".feedback-resposta").css("display","none");
+                $(".feedback").css("display","none");
+                $.ajax({
+                        url: "/calcularsentimento/" + $("#frase_input").val(),
+                        statusCode: {
+                            404: function() {
+                            alert( "Modelo em treinamento" );
+                            }
+                        }
+                    })
+                    .done(function (data) {
+                        console.log(data);
+                        if (data.resultado[1] == "Frase positiva") {
+                            
+                            $("#retorno_span").html(data.resultado[1]);
+                        } else {
+                            
+                            $("#retorno_span").html(data.resultado[1]);
+                        }
+                        $("#retorno_span").css("display", "block");
+                        $(".feedback").css("display", "block");
+                    });
+            })
+
+            function retorna_valor_span() {
+                var valor;
+                if ($("#retorno_span").html() == "Frase positiva") {
+                    valor = 1;
+                } else {
+                    valor = 0;
+                }
+                return valor
+            }
+            $(".btn-feedback").click(function () {
+                $.ajax({
+                        url: "/feedback/" + $("#frase_input").val() + "/" + retorna_valor_span() +
+                            "/" + $(this).attr("value"),
+                    })
+                    .done(function (data) {
+                        console.log(data);
+
+                    });
+                
+                $(".feedback").css("display","none");
+                $("#retorno_span").removeClass("alert-success");
+                $("#retorno_span").removeClass("alert-danger");
+                $(".feedback-resposta").css("display","block");
+            })
+        })
+    </script>
+</body>
+
+</html>
